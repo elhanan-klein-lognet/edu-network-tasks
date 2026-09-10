@@ -78,18 +78,37 @@ comment on function public.current_user_institution_id() is
   'Reads institution_id from the JWT. NULL for super_admin/network_admin. Never queries public.users.';
 
 -- ----------------------------------------------------------------------------
+-- app_config: tiny key/value settings table.
+--
+-- First attempt at this used `alter database postgres set app.<key> = ...`
+-- (a Postgres GUC), which fails on Supabase's hosted Postgres with
+-- "permission denied to set parameter" — the SQL Editor does not run as a
+-- true superuser there, and ALTER DATABASE ... SET requires one. A plain
+-- table is the fix: normal DML, no elevated privileges needed, and it's
+-- readable only by SECURITY DEFINER functions (owner-bypasses-RLS, same
+-- pattern as can_view_task in 00000000000003_rls_policies.sql) since RLS is
+-- enabled with no policies for any other role.
+-- ----------------------------------------------------------------------------
+create table public.app_config (
+  key   text primary key,
+  value text
+);
+
+alter table public.app_config enable row level security;
+-- Intentionally no policies: not readable by authenticated/anon at all,
+-- only by the table owner (and therefore by SECURITY DEFINER functions
+-- owned by it, such as handle_new_auth_user below).
+
+comment on table public.app_config is
+  'Small per-project settings, e.g. initial_admin_email (section 3.5). Set via: insert into public.app_config (key, value) values (''initial_admin_email'', ''someone@example.com'') on conflict (key) do update set value = excluded.value; — run this once per Supabase project (production and dev/test get different values, section 9).';
+
+-- ----------------------------------------------------------------------------
 -- First-super-admin bootstrap (section 3.5).
 -- When a user signs up and public.users has ZERO rows yet, OR their email
--- matches the INITIAL_ADMIN_EMAIL app setting, they become super_admin
--- automatically. This is the one deliberate exception to "no hardcoded data"
--- — it's a one-time technical bootstrap, not seeded business data.
---
--- INITIAL_ADMIN_EMAIL is read from a Postgres setting so it can be configured
--- per-environment (production vs dev/test — section 9) without editing SQL.
--- Set it once after running migrations:
---   alter database postgres set app.initial_admin_email = 'elhanan.klein.lognet@gmail.com';
--- (repeat per Supabase project — this value is NOT the same across the two
--- projects described in section 9, since prod and dev/test are independent)
+-- matches the initial_admin_email row in app_config above, they become
+-- super_admin automatically. This is the one deliberate exception to
+-- "no hardcoded data" — it's a one-time technical bootstrap, not seeded
+-- business data.
 -- ----------------------------------------------------------------------------
 -- NOTE: this trigger handles ONLY the bootstrap case. For every other
 -- sign-up, the admin-panel invite action (using the service-role client,
@@ -111,11 +130,9 @@ declare
 begin
   select count(*) = 0 into v_is_first_user from public.users;
 
-  begin
-    v_initial_admin_email := current_setting('app.initial_admin_email', true);
-  exception when others then
-    v_initial_admin_email := null;
-  end;
+  select value into v_initial_admin_email
+  from public.app_config
+  where key = 'initial_admin_email';
 
   v_is_configured_admin := v_initial_admin_email is not null
     and lower(new.email) = lower(v_initial_admin_email);

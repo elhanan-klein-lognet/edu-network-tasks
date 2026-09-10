@@ -21,9 +21,14 @@ production/dev-test מתוכננת (עדיין לא מחוברת), migrations מ
 1. צרו פרויקט חדש, שמרו את סיסמת בסיס הנתונים במקום בטוח.
 2. הריצו את כל הקבצים תחת `supabase/migrations/` לפי הסדר (או דרך
    Supabase CLI: `supabase link --project-ref <ref>` ואז `supabase db push`).
-3. קבעו את כתובת המייל של מנהל-העל הראשוני (סעיף 3.5):
+3. קבעו את כתובת המייל של מנהל-העל הראשוני (סעיף 3.5) - **לא** דרך
+   `alter database ... set` (זה נכשל ב-SQL Editor של Supabase עם
+   "permission denied", כי הוא לא רץ כ-superuser אמיתי), אלא דרך טבלת
+   ההגדרות `app_config`:
    ```sql
-   alter database postgres set app.initial_admin_email = 'the-admin-email@example.com';
+   insert into public.app_config (key, value)
+   values ('initial_admin_email', 'the-admin-email@example.com')
+   on conflict (key) do update set value = excluded.value;
    ```
    שימו לב: זו הגדרה **לכל פרויקט Supabase בנפרד** - production ו-dev/test
    יכולים (ואולי כדאי שיהיו) עם ערך שונה.
