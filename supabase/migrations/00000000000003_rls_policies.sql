@@ -61,13 +61,17 @@ create policy users_write on public.users for update
   using (public.current_user_role() = 'super_admin')
   with check (public.current_user_role() = 'super_admin');
 
--- Every user may update their own non-privileged profile fields (e.g. full_name).
--- The app layer (not RLS) is responsible for not exposing role/institution
--- editing in the "my profile" UI for non-admins.
-create policy users_update_own_profile on public.users for update
-  to authenticated
-  using (id = auth.uid())
-  with check (id = auth.uid());
+-- Deliberately NOT adding a "users may update their own row" policy here.
+-- RLS is row-level, not column-level: a policy like
+--   using (id = auth.uid()) with check (id = auth.uid())
+-- would let any signed-in user rewrite their OWN role/institution_id too
+-- (e.g. self-promote to super_admin), since USING/WITH CHECK can't compare
+-- old.role to new.role on their own — that needs a BEFORE UPDATE trigger
+-- that pins role/institution_id/is_active back to their old values whenever
+-- the acting user isn't super_admin. Not implemented yet because no MVP
+-- screen needs self-service profile editing (only super_admin edits users,
+-- via users_write above); add that trigger FIRST if this policy is ever
+-- introduced.
 
 -- ----------------------------------------------------------------------------
 -- boards

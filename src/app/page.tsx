@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { SignOutButton } from "@/components/sign-out-button";
 
@@ -33,9 +34,17 @@ export default async function HomePage() {
         </p>
       )}
       <p className="max-w-md text-sm text-black/50">
-        זהו שלד ראשוני של המערכת. מסכי ניהול המוסדות, המשתמשים, ה-boards
-        והמשימות (סעיפים 3-6 באפיון) ייבנו כאן בהמשך.
+        זהו שלד ראשוני של המערכת. מסכי המשימות (סעיפים 4-6 באפיון) ייבנו כאן
+        בהמשך.
       </p>
+      {profile?.role === "super_admin" && (
+        <Link
+          href="/institutions"
+          className="rounded bg-black px-4 py-2 text-sm text-white"
+        >
+          כניסה לממשק הניהול
+        </Link>
+      )}
       <SignOutButton />
     </main>
   );
