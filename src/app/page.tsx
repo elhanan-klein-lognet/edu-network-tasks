@@ -33,18 +33,24 @@ export default async function HomePage() {
           תפקיד: {ROLE_LABELS[profile.role] ?? profile.role}
         </p>
       )}
-      <p className="max-w-md text-sm text-black/50">
-        זהו שלד ראשוני של המערכת. מסכי המשימות (סעיפים 4-6 באפיון) ייבנו כאן
-        בהמשך.
-      </p>
-      {profile?.role === "super_admin" && (
-        <Link
-          href="/institutions"
-          className="rounded bg-black px-4 py-2 text-sm text-white"
-        >
-          כניסה לממשק הניהול
-        </Link>
-      )}
+      <div className="flex gap-3">
+        {profile && (
+          <Link
+            href="/boards"
+            className="rounded bg-black px-4 py-2 text-sm text-white"
+          >
+            ה-Boards שלי
+          </Link>
+        )}
+        {profile?.role === "super_admin" && (
+          <Link
+            href="/admin/institutions"
+            className="rounded border border-black/20 px-4 py-2 text-sm"
+          >
+            כניסה לממשק הניהול
+          </Link>
+        )}
+      </div>
       <SignOutButton />
     </main>
   );

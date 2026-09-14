@@ -59,7 +59,7 @@ export async function updateUserRoleAndInstitution(formData: FormData) {
     .eq("id", id);
   if (error) throw new Error(error.message);
 
-  revalidatePath("/users");
+  revalidatePath("/admin/users");
 }
 
 export async function toggleUserActive(formData: FormData) {
@@ -73,5 +73,5 @@ export async function toggleUserActive(formData: FormData) {
     .eq("id", id);
   if (error) throw new Error(error.message);
 
-  revalidatePath("/users");
+  revalidatePath("/admin/users");
 }

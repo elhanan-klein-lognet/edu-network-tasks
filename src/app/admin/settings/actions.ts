@@ -27,7 +27,7 @@ export async function addStatus(formData: FormData) {
     .insert({ name, display_order: order });
   if (error) throw new Error(error.message);
 
-  revalidatePath("/settings");
+  revalidatePath("/admin/settings");
 }
 
 export async function deleteStatus(formData: FormData) {
@@ -39,7 +39,7 @@ export async function deleteStatus(formData: FormData) {
   const { error } = await supabase.from("task_statuses").delete().eq("id", id);
   if (error) throw new Error("לא ניתן למחוק סטטוס שנמצא בשימוש במשימה קיימת");
 
-  revalidatePath("/settings");
+  revalidatePath("/admin/settings");
 }
 
 export async function addPriority(formData: FormData) {
@@ -53,7 +53,7 @@ export async function addPriority(formData: FormData) {
     .insert({ name, display_order: order });
   if (error) throw new Error(error.message);
 
-  revalidatePath("/settings");
+  revalidatePath("/admin/settings");
 }
 
 export async function deletePriority(formData: FormData) {
@@ -62,5 +62,5 @@ export async function deletePriority(formData: FormData) {
   const { error } = await supabase.from("task_priorities").delete().eq("id", id);
   if (error) throw new Error("לא ניתן למחוק עדיפות שנמצאת בשימוש במשימה קיימת");
 
-  revalidatePath("/settings");
+  revalidatePath("/admin/settings");
 }

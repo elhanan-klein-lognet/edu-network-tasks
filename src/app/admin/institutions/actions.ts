@@ -13,7 +13,7 @@ export async function createInstitution(formData: FormData) {
   const { error } = await supabase.from("institutions").insert({ name });
   if (error) throw new Error(error.message);
 
-  revalidatePath("/institutions");
+  revalidatePath("/admin/institutions");
 }
 
 export async function toggleInstitutionActive(formData: FormData) {
@@ -27,5 +27,5 @@ export async function toggleInstitutionActive(formData: FormData) {
     .eq("id", id);
   if (error) throw new Error(error.message);
 
-  revalidatePath("/institutions");
+  revalidatePath("/admin/institutions");
 }

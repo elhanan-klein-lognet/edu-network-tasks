@@ -13,10 +13,24 @@
 -- [auth.hook.custom_access_token] in supabase/config.toml.
 -- ============================================================================
 
+-- SECURITY DEFINER is required here, not optional: Supabase Auth calls this
+-- function as the `supabase_auth_admin` role, which is not `authenticated`
+-- and matches none of public.users's RLS policies (they're all `to
+-- authenticated`). Without SECURITY DEFINER the SELECT below silently
+-- returns zero rows under RLS — not an error, just v_role staying NULL —
+-- so every user's user_role claim quietly falls back to 'employee' no
+-- matter what their real role is. (Found this the hard way: it doesn't
+-- show up as an error anywhere, only as RLS rejecting things it shouldn't.)
+-- SECURITY DEFINER makes it run as the function owner (table owner),
+-- which bypasses RLS — same reasoning as can_view_task in
+-- 00000000000003_rls_policies.sql, just easy to forget here because this
+-- function's job LOOKS read-only and harmless.
 create or replace function public.custom_access_token_hook(event jsonb)
 returns jsonb
 language plpgsql
 stable
+security definer
+set search_path = public
 as $$
 declare
   claims jsonb;

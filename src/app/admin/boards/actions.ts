@@ -22,7 +22,7 @@ export async function createBoard(formData: FormData) {
   });
   if (error) throw new Error(error.message);
 
-  revalidatePath("/boards");
+  revalidatePath("/admin/boards");
 }
 
 export async function addCustomField(formData: FormData) {
@@ -51,7 +51,7 @@ export async function addCustomField(formData: FormData) {
   // (max 3 per board, section 4) — surfaced to the admin as-is.
   if (error) throw new Error(error.message);
 
-  revalidatePath(`/boards/${boardId}`);
+  revalidatePath(`/admin/boards/${boardId}`);
 }
 
 export async function deleteCustomField(formData: FormData) {
@@ -65,5 +65,5 @@ export async function deleteCustomField(formData: FormData) {
     .eq("id", id);
   if (error) throw new Error(error.message);
 
-  revalidatePath(`/boards/${boardId}`);
+  revalidatePath(`/admin/boards/${boardId}`);
 }

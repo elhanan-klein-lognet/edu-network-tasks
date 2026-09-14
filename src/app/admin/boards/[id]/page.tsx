@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { addCustomField, deleteCustomField } from "../actions";
 
 export default async function BoardDetailPage(
-  props: PageProps<"/boards/[id]">,
+  props: PageProps<"/admin/boards/[id]">,
 ) {
   const { id } = await props.params;
   const supabase = await createClient();

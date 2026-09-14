@@ -62,15 +62,20 @@ export default async function BoardsPage() {
       <ul className="divide-y divide-black/5 rounded border border-black/10">
         {boards?.length ? (
           boards.map((board) => (
-            <li key={board.id} className="px-3 py-2 text-sm">
-              <Link href={`/boards/${board.id}`} className="hover:underline">
-                {board.name}
-              </Link>
-              <span className="ms-2 text-black/40">
-                {board.institution_id
-                  ? (institutionNameById.get(board.institution_id) ?? "מוסד לא ידוע")
-                  : "כלל-רשתי"}
+            <li key={board.id} className="flex items-center justify-between px-3 py-2 text-sm">
+              <span>
+                <Link href={`/admin/boards/${board.id}`} className="hover:underline">
+                  {board.name}
+                </Link>
+                <span className="ms-2 text-black/40">
+                  {board.institution_id
+                    ? (institutionNameById.get(board.institution_id) ?? "מוסד לא ידוע")
+                    : "כלל-רשתי"}
+                </span>
               </span>
+              <Link href={`/boards/${board.id}`} className="text-xs text-black/50 underline">
+                צפייה במשימות ←
+              </Link>
             </li>
           ))
         ) : (

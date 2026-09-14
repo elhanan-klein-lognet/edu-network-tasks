@@ -6,10 +6,10 @@ import { createClient } from "@/lib/supabase/server";
 // simplicity — even though 3.4 leaves the door open to also letting
 // network_admin create boards. Revisit if that turns out to matter.
 const NAV = [
-  { href: "/institutions", label: "מוסדות" },
-  { href: "/settings", label: "הגדרות מערכת" },
-  { href: "/boards", label: "Boards" },
-  { href: "/users", label: "משתמשים" },
+  { href: "/admin/institutions", label: "מוסדות" },
+  { href: "/admin/settings", label: "הגדרות מערכת" },
+  { href: "/admin/boards", label: "Boards" },
+  { href: "/admin/users", label: "משתמשים" },
 ];
 
 export default async function AdminLayout({
