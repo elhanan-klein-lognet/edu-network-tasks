@@ -24,7 +24,7 @@ export function Modal({
       <div
         onClick={(e) => e.stopPropagation()}
         className={`max-h-[90vh] w-full ${
-          wide ? "max-w-lg" : "max-w-md"
+          wide ? "max-w-2xl" : "max-w-md"
         } overflow-y-auto rounded-lg bg-white p-5 shadow-lg`}
       >
         {children}

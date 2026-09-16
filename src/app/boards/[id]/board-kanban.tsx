@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { createTask, updateTaskStatus } from "./actions";
+import { useMemo, useState, useTransition } from "react";
+import { createTask, updateTask, updateTaskStatus } from "./actions";
 import {
   TaskDetailModal,
   NewTaskModal,
@@ -14,10 +14,11 @@ import {
 
 /**
  * Kanban board: one column per status, task cards draggable between
- * columns (drop = status update). Card click opens the full-detail popup;
- * "משימה חדשה" opens the create-task popup. Both popups call the server
- * actions directly (not as a <form action>) so we can close the popup and
- * surface errors once the action settles.
+ * columns (drop = status update). Card click opens the full-detail popup
+ * (editable for roles that can also create tasks); "משימה חדשה" opens the
+ * create-task popup. Both popups call the server actions directly (not as
+ * a <form action>) so we can close the popup and surface errors once the
+ * action settles.
  */
 export function BoardKanban({
   boardId,
@@ -25,20 +26,18 @@ export function BoardKanban({
   priorities,
   fieldDefs,
   tasks,
-  assigneesByTask,
-  priorityNameById,
+  assigneeIdsByTask,
   assignableUsers,
-  canCreate,
+  canManage,
 }: {
   boardId: string;
   statuses: Status[];
   priorities: Priority[];
   fieldDefs: FieldDef[];
   tasks: Task[];
-  assigneesByTask: Record<string, string[]>;
-  priorityNameById: Record<string, string>;
+  assigneeIdsByTask: Record<string, string[]>;
   assignableUsers: AssignableUser[];
-  canCreate: boolean;
+  canManage: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
@@ -48,6 +47,13 @@ export function BoardKanban({
     null,
   );
   const [error, setError] = useState<string | null>(null);
+
+  const nameById = useMemo(
+    () => Object.fromEntries(assignableUsers.map((u) => [u.id, u.full_name])),
+    [assignableUsers],
+  );
+  const namesForTask = (taskId: string) =>
+    (assigneeIdsByTask[taskId] ?? []).map((id) => nameById[id] ?? "משתמש");
 
   const selectedTask = tasks.find((t) => t.id === selectedTaskId) ?? null;
 
@@ -77,14 +83,14 @@ export function BoardKanban({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {error && (
         <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
           {error}
         </p>
       )}
 
-      {canCreate && (
+      {canManage && (
         <div className="flex justify-end">
           <button
             type="button"
@@ -96,7 +102,7 @@ export function BoardKanban({
         </div>
       )}
 
-      <div className="flex gap-4 overflow-x-auto pb-2">
+      <div className="flex w-full gap-3 overflow-x-auto pb-2">
         {statuses.map((status) => {
           const columnTasks = tasks.filter((t) => t.status_id === status.id);
           const isDragOver = dragOverStatusId === status.id;
@@ -114,7 +120,7 @@ export function BoardKanban({
                 e.preventDefault();
                 handleDrop(status.id);
               }}
-              className={`w-64 shrink-0 rounded border p-2 transition-colors ${
+              className={`min-w-[220px] flex-1 rounded border p-2 transition-colors ${
                 isDragOver ? "border-black bg-black/5" : "border-black/10"
               }`}
             >
@@ -135,8 +141,8 @@ export function BoardKanban({
                   >
                     <p className="font-medium">{task.title}</p>
                     <p className="text-xs text-black/50">
-                      {assigneesByTask[task.id]?.length
-                        ? assigneesByTask[task.id].join(", ")
+                      {namesForTask(task.id).length
+                        ? namesForTask(task.id).join(", ")
                         : "ללא אחראי"}
                     </p>
                     {task.due_date && (
@@ -158,13 +164,28 @@ export function BoardKanban({
       {selectedTask && (
         <TaskDetailModal
           task={selectedTask}
+          boardId={boardId}
           statuses={statuses}
-          priorityName={priorityNameById[selectedTask.priority_id] ?? "—"}
+          priorities={priorities}
           fieldDefs={fieldDefs}
-          assignees={assigneesByTask[selectedTask.id] ?? []}
+          assignableUsers={assignableUsers}
+          assigneeIds={assigneeIdsByTask[selectedTask.id] ?? []}
+          assigneeNames={namesForTask(selectedTask.id)}
           isPending={isPending}
+          canEdit={canManage}
           onClose={() => setSelectedTaskId(null)}
           onStatusChange={(statusId) => changeStatus(selectedTask.id, statusId)}
+          onSave={(fd) => {
+            setError(null);
+            startTransition(async () => {
+              try {
+                await updateTask(fd);
+                setSelectedTaskId(null);
+              } catch (e) {
+                setError(e instanceof Error ? e.message : "שמירת המשימה נכשלה");
+              }
+            });
+          }}
         />
       )}
 

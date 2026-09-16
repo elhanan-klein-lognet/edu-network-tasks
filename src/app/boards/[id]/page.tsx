@@ -65,24 +65,17 @@ export default async function BoardTasksPage(
         .in("task_id", taskIds)
     : { data: [] };
 
-  const userNameById = new Map(
-    (assignableUsers ?? []).map((u) => [u.id, u.full_name]),
-  );
-  const assigneesByTask: Record<string, string[]> = {};
+  const assigneeIdsByTask: Record<string, string[]> = {};
   for (const a of assignments ?? []) {
-    const list = assigneesByTask[a.task_id] ?? [];
-    list.push(userNameById.get(a.user_id) ?? "משתמש");
-    assigneesByTask[a.task_id] = list;
-  }
-  const priorityNameById: Record<string, string> = {};
-  for (const p of priorities ?? []) {
-    priorityNameById[p.id] = p.name;
+    const list = assigneeIdsByTask[a.task_id] ?? [];
+    list.push(a.user_id);
+    assigneeIdsByTask[a.task_id] = list;
   }
 
-  const canCreate = profile ? CAN_CREATE_TASKS.includes(profile.role) : false;
+  const canManage = profile ? CAN_CREATE_TASKS.includes(profile.role) : false;
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-6 p-6">
+    <div className="w-full space-y-4 px-4 py-4">
       <div>
         <h1 className="text-lg font-semibold">{board.name}</h1>
         <Link href="/boards" className="text-xs text-black/50">
@@ -96,10 +89,9 @@ export default async function BoardTasksPage(
         priorities={priorities ?? []}
         fieldDefs={fieldDefs ?? []}
         tasks={tasks ?? []}
-        assigneesByTask={assigneesByTask}
-        priorityNameById={priorityNameById}
+        assigneeIdsByTask={assigneeIdsByTask}
         assignableUsers={assignableUsers ?? []}
-        canCreate={canCreate}
+        canManage={canManage}
       />
     </div>
   );
