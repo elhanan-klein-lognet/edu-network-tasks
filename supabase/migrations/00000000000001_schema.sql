@@ -218,9 +218,16 @@ create table public.task_activity_log (
   changed_at  timestamptz not null default now()
 );
 
+-- security definer: this trigger fires as the invoking (authenticated) role,
+-- but task_activity_log only grants authenticated users SELECT (section 9 —
+-- it's a read-only audit trail written exclusively by triggers). Without
+-- security definer the insert below is itself blocked by RLS, which fails
+-- the whole status update. Same pattern as custom_access_token_hook.
 create or replace function public.log_task_status_change()
 returns trigger
 language plpgsql
+security definer
+set search_path = public
 as $$
 begin
   if old.status_id is distinct from new.status_id then
@@ -235,9 +242,12 @@ create trigger trg_log_task_status_change
   after update of status_id on public.tasks
   for each row execute function public.log_task_status_change();
 
+-- security definer for the same reason as log_task_status_change() above.
 create or replace function public.log_task_assignee_change()
 returns trigger
 language plpgsql
+security definer
+set search_path = public
 as $$
 begin
   if tg_op = 'INSERT' then
