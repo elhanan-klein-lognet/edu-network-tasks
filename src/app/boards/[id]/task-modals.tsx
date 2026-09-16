@@ -171,20 +171,23 @@ function TaskFormFields({
 
       {assignableUsers.length > 0 ? (
         <div className="space-y-1 border-t border-black/10 pt-3">
-          <p className="text-xs text-black/50">אחראים:</p>
-          <div className="flex flex-wrap gap-3">
+          <label className="block text-xs text-black/50" htmlFor="assignee_ids">
+            אחראים (אפשר לבחור כמה — Ctrl/Cmd+קליק, או גרירה):
+          </label>
+          <select
+            id="assignee_ids"
+            name="assignee_ids"
+            multiple
+            size={Math.min(6, Math.max(3, assignableUsers.length))}
+            defaultValue={defaults?.assignee_ids ?? []}
+            className="w-full rounded border border-black/20 px-2 py-1 text-sm"
+          >
             {assignableUsers.map((u) => (
-              <label key={u.id} className="flex items-center gap-1 text-sm">
-                <input
-                  type="checkbox"
-                  name="assignee_ids"
-                  value={u.id}
-                  defaultChecked={defaults?.assignee_ids.includes(u.id)}
-                />
+              <option key={u.id} value={u.id}>
                 {u.full_name}
-              </label>
+              </option>
             ))}
-          </div>
+          </select>
         </div>
       ) : (
         <p className="border-t border-black/10 pt-3 text-xs text-black/40">

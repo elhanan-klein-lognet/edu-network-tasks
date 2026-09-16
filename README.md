@@ -40,6 +40,20 @@ production/dev-test מתוכננת (עדיין לא מחוברת), migrations מ
 5. (מומלץ) בדשבורד → Authentication → Emails → SMTP Settings, הגדירו
    Custom SMTP עם Resend (ראו סעיף 2 למטה) - כדי שמיילי ההזמנה למשתמשים
    לא ייתקלו במגבלת הקצב של ה-SMTP המובנה.
+6. **חובה להזמנת משתמשים (סעיף 3.2):**
+   - בדשבורד → Authentication → URL Configuration: ודאו ש-**Site URL**
+     מצביע על הכתובת שבה תבדקו (כתובת ה-Vercel deployment, או
+     `http://localhost:3000` לבדיקה מקומית), ושה-**Redirect URLs** כוללת
+     `<אותה כתובת>/auth/confirm` (או `<אותה כתובת>/**` באופן גורף).
+   - בדשבורד → Authentication → Email Templates → **Invite user**:
+     ה-template הדיפולטי מפנה לנקודת האימות המובנית של Supabase; צריך
+     להחליף את קישור האישור כך שיצביע ישירות ל-route שלנו. מחליפים את
+     `{{ .ConfirmationURL }}` ב-:
+     ```
+     {{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=invite
+     ```
+     בלי זה, לחיצה על "הצטרפות" בהזמנה תיכשל (ראו
+     `src/app/auth/confirm/route.ts`).
 
 ### 2. שירות מייל (Resend)
 
@@ -51,6 +65,10 @@ production/dev-test מתוכננת (עדיין לא מחוברת), migrations מ
 העתיקו `.env.example` ל-`.env.local` ומלאו את הערכים מפרויקט ה-dev/test
 של Supabase + Resend. **אל תשתפו `SUPABASE_SERVICE_ROLE_KEY` בשום מקום
 מלבד משתני סביבה** (לא ב-git, לא בצ'אט) - הוא עוקף את כל ה-RLS.
+`SUPABASE_SERVICE_ROLE_KEY` נמצא בדשבורד → Project Settings → API →
+`service_role` `secret` (לא ה-`anon` `public` key). הוא נדרש להזמנת
+משתמשים (סעיף 3.2) - בלעדיו כפתור "שליחת הזמנה" ייכשל. צריך להוסיף אותו
+גם ל-`.env.local` וגם למשתני הסביבה ב-Vercel (סעיף 5 למטה).
 
 ### 4. הרצה מקומית
 

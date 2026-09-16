@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { updateUserRoleAndInstitution, toggleUserActive } from "./actions";
+import { inviteUser, updateUserRoleAndInstitution, toggleUserActive } from "./actions";
 
 const ROLE_OPTIONS: { value: string; label: string }[] = [
   { value: "super_admin", label: "מנהל-על" },
@@ -24,11 +24,61 @@ export default async function UsersPage() {
       <div>
         <h1 className="text-lg font-semibold">ניהול משתמשים</h1>
         <p className="text-sm text-black/50">
-          הזמנת משתמשים חדשים (סעיף 3.2) עדיין לא זמינה כאן — דורשת את
-          מפתח ה-service_role שטרם חובר. שינוי תפקיד/מוסד ל-משתמשים
-          קיימים, כולל העברת בעלות (סעיף 3.6), כבר עובד.
+          הזמנה נשלחת במייל; המשתמש קובע סיסמה בכניסה הראשונה. אין הרשמה
+          עצמאית — הצטרפות למערכת רק דרך הזמנה (סעיף 3.2 באפיון).
         </p>
       </div>
+
+      <form
+        action={inviteUser}
+        className="space-y-2 rounded border border-black/10 p-4"
+      >
+        <h2 className="font-medium">הזמנת משתמש חדש</h2>
+        <div className="flex flex-wrap gap-2">
+          <input
+            name="full_name"
+            required
+            placeholder="שם מלא"
+            className="rounded border border-black/20 px-3 py-2 text-sm"
+          />
+          <input
+            type="email"
+            name="email"
+            required
+            placeholder="אימייל"
+            className="rounded border border-black/20 px-3 py-2 text-sm"
+          />
+          <select
+            name="role"
+            defaultValue="employee"
+            className="rounded border border-black/20 px-2 py-2 text-sm"
+          >
+            {ROLE_OPTIONS.map((r) => (
+              <option key={r.value} value={r.value}>
+                {r.label}
+              </option>
+            ))}
+          </select>
+          <select
+            name="institution_id"
+            defaultValue=""
+            className="rounded border border-black/20 px-2 py-2 text-sm"
+          >
+            <option value="">— ללא מוסד —</option>
+            {institutions?.map((inst) => (
+              <option key={inst.id} value={inst.id}>
+                {inst.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <button
+          type="submit"
+          className="rounded bg-black px-4 py-2 text-sm text-white"
+        >
+          שליחת הזמנה
+        </button>
+      </form>
 
       <table className="w-full text-sm">
         <thead>
