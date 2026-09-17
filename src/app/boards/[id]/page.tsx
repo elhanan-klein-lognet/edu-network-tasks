@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { BoardKanban } from "./board-kanban";
@@ -98,13 +97,8 @@ export default async function BoardTasksPage(
   }
 
   return (
-    <div className="w-full space-y-4 px-4 py-4">
-      <div>
-        <h1 className="text-lg font-semibold">{board.name}</h1>
-        <Link href="/boards" className="text-xs text-black/50">
-          ← חזרה ל-Boards שלי
-        </Link>
-      </div>
+    <div className="w-full space-y-3">
+      <h2 className="text-base font-medium">{board.name}</h2>
 
       <BoardKanban
         boardId={board.id}
