@@ -42,7 +42,10 @@ export default async function BoardsLayout({
       </div>
 
       <div className="flex w-full items-start gap-4">
-        <BoardsListPane boards={boards ?? []} />
+        <BoardsListPane
+          boards={boards ?? []}
+          defaultBoardId={boards?.[0]?.id ?? null}
+        />
         <div className="min-w-0 flex-1">{children}</div>
       </div>
     </div>

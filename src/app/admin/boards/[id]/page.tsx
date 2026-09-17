@@ -26,8 +26,8 @@ export default async function BoardDetailPage(
       <div>
         <h1 className="text-lg font-semibold">{board.name}</h1>
         <p className="text-sm text-black/50">
-          שדות מותאמים אישית — עד 3 לכל board (סעיף 4 באפיון). כרגע:{" "}
-          {fieldCount}/3.
+          שדות מותאמים אישית — עד 15 לכל board (סעיף 4 באפיון). כרגע:{" "}
+          {fieldCount}/15.
         </p>
       </div>
 
@@ -62,7 +62,7 @@ export default async function BoardDetailPage(
         )}
       </ul>
 
-      {fieldCount < 3 && (
+      {fieldCount < 15 && (
         <form action={addCustomField} className="space-y-2 rounded border border-black/10 p-4">
           <input type="hidden" name="board_id" value={board.id} />
           <div className="flex gap-2">

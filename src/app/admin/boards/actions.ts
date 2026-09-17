@@ -48,7 +48,7 @@ export async function addCustomField(formData: FormData) {
     field_options: fieldOptions,
   });
   // Most common failure here: the trg_enforce_max_custom_fields trigger
-  // (max 3 per board, section 4) — surfaced to the admin as-is.
+  // (max 15 per board, section 4) — surfaced to the admin as-is.
   if (error) throw new Error(error.message);
 
   revalidatePath(`/admin/boards/${boardId}`);

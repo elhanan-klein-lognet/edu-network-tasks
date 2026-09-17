@@ -17,9 +17,20 @@ type BoardRow = { id: string; name: string; institution_id: string | null };
  * local (not persisted) since this is a POC and the list lives in a layout
  * that already stays mounted across in-app navigation between boards.
  */
-export function BoardsListPane({ boards }: { boards: BoardRow[] }) {
+export function BoardsListPane({
+  boards,
+  defaultBoardId,
+}: {
+  boards: BoardRow[];
+  defaultBoardId: string | null;
+}) {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
+  // Plain /boards renders the first board's content directly (see
+  // boards/page.tsx) rather than redirecting to /boards/[id], so the URL
+  // alone can't tell us which item to highlight in that case — fall back to
+  // "is this the default board" when we're on the bare /boards route.
+  const isBareBoardsRoute = pathname === "/boards";
 
   if (collapsed) {
     return (
@@ -53,7 +64,8 @@ export function BoardsListPane({ boards }: { boards: BoardRow[] }) {
         {boards.length ? (
           boards.map((board) => {
             const href = `/boards/${board.id}`;
-            const active = pathname === href;
+            const active =
+              pathname === href || (isBareBoardsRoute && board.id === defaultBoardId);
             return (
               <li key={board.id}>
                 <Link

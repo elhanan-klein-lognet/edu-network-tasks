@@ -23,6 +23,7 @@ import {
  */
 export function BoardKanban({
   boardId,
+  boardName,
   statuses,
   priorities,
   fieldDefs,
@@ -35,6 +36,7 @@ export function BoardKanban({
   canLinkProjects,
 }: {
   boardId: string;
+  boardName: string;
   statuses: Status[];
   priorities: Priority[];
   fieldDefs: FieldDef[];
@@ -97,8 +99,9 @@ export function BoardKanban({
         </p>
       )}
 
-      {canManage && (
-        <div className="flex justify-end">
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="text-base font-medium">{boardName}</h2>
+        {canManage && (
           <button
             type="button"
             onClick={() => setShowNewTask(true)}
@@ -106,8 +109,8 @@ export function BoardKanban({
           >
             + משימה חדשה
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
       <div className="flex w-full gap-3 overflow-x-auto pb-2">
         {statuses.map((status) => {
