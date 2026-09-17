@@ -16,64 +16,18 @@ async function nextDisplayOrder(
   return (data?.display_order ?? -1) + 1;
 }
 
-/**
- * Adds a status at a chosen point in the display order (section 3.3 — "לקבוע
- * איפה בהיררכיה הוא נכנס") instead of always at the end: insert it, then
- * renumber every status 0..n-1 in the desired final order. Cheap at the
- * scale this list ever reaches (a handful of statuses).
- */
 export async function addStatus(formData: FormData) {
   const name = String(formData.get("name") || "").trim();
-  const insertBeforeId = String(formData.get("insert_before_id") || "") || null;
   if (!name) return;
 
   const supabase = await createClient();
-
-  const { data: existing } = await supabase
-    .from("task_statuses")
-    .select("id")
-    .order("display_order");
-  const existingIds = (existing ?? []).map((s) => s.id);
-
   const order = await nextDisplayOrder(supabase, "task_statuses");
-  const { data: created, error } = await supabase
+  const { error } = await supabase
     .from("task_statuses")
-    .insert({ name, display_order: order })
-    .select("id")
-    .single();
+    .insert({ name, display_order: order });
   if (error) throw new Error(error.message);
 
-  const insertAt = insertBeforeId ? existingIds.indexOf(insertBeforeId) : -1;
-  const finalOrder = [...existingIds];
-  finalOrder.splice(insertAt === -1 ? finalOrder.length : insertAt, 0, created.id);
-
-  await applyStatusOrder(supabase, finalOrder);
-
   revalidatePath("/admin/settings");
-}
-
-/**
- * Persists a full drag-and-drop reorder from the settings screen — called
- * directly from the client (not a <form action>), so it takes the ordered
- * id list as a plain argument rather than FormData.
- */
-export async function reorderStatuses(orderedIds: string[]) {
-  const supabase = await createClient();
-  await applyStatusOrder(supabase, orderedIds);
-  revalidatePath("/admin/settings");
-}
-
-async function applyStatusOrder(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  orderedIds: string[],
-) {
-  for (let i = 0; i < orderedIds.length; i++) {
-    const { error } = await supabase
-      .from("task_statuses")
-      .update({ display_order: i })
-      .eq("id", orderedIds[i]);
-    if (error) throw new Error(error.message);
-  }
 }
 
 export async function toggleStatusCompleted(formData: FormData) {

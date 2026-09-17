@@ -1,18 +1,22 @@
 import { createClient } from "@/lib/supabase/server";
-import { addStatus, addPriority, deletePriority } from "./actions";
-import { StatusList } from "./status-list";
+import {
+  addStatus,
+  deleteStatus,
+  toggleStatusCompleted,
+  addPriority,
+  deletePriority,
+} from "./actions";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
 
-  const [{ data: statusRows }, { data: priorities }] = await Promise.all([
+  const [{ data: statuses }, { data: priorities }] = await Promise.all([
     supabase
       .from("task_statuses")
       .select("id, name, is_completed")
       .order("display_order"),
     supabase.from("task_priorities").select("id, name").order("display_order"),
   ]);
-  const statuses = statusRows ?? [];
 
   return (
     <div className="max-w-2xl space-y-10">
@@ -28,33 +32,20 @@ export default async function SettingsPage() {
         <div>
           <h2 className="font-medium">סטטוסים</h2>
           <p className="text-xs text-black/50">
-            הסדר כאן הוא סדר העמודות בלוח המשימות — גרור שורה למעלה/למטה כדי
-            לשנות אותו. סמן &quot;נחשב כהושלם&quot; על סטטוס שאומר שהמשימה
-            גמורה (למשל &quot;הושלם&quot; או &quot;בוטל&quot;) — זה מה שמחשב
-            את אחוז ההתקדמות בפרויקטים (סעיף 6) ואת מספר המשימות שנותרו
-            פתוחות בדשבורד (סעיף 7). אפשר לסמן יותר מסטטוס אחד ככה.
+            סמן &quot;נחשב כהושלם&quot; על סטטוס שאומר שהמשימה גמורה (למשל
+            &quot;הושלם&quot; או &quot;בוטל&quot;) — זה מה שמחשב את אחוז
+            ההתקדמות בפרויקטים (סעיף 6) ואת מספר המשימות שנותרו פתוחות
+            בדשבורד (סעיף 7). אפשר לסמן יותר מסטטוס אחד ככה.
           </p>
         </div>
 
-        <form action={addStatus} className="flex flex-wrap gap-2">
+        <form action={addStatus} className="flex gap-2">
           <input
             name="name"
             required
             placeholder="לדוגמה: לביצוע"
             className="flex-1 rounded border border-black/20 px-3 py-2 text-sm"
           />
-          <select
-            name="insert_before_id"
-            defaultValue=""
-            className="rounded border border-black/20 px-2 py-2 text-sm"
-          >
-            <option value="">בסוף הרשימה</option>
-            {statuses.map((status) => (
-              <option key={status.id} value={status.id}>
-                לפני &quot;{status.name}&quot;
-              </option>
-            ))}
-          </select>
           <button
             type="submit"
             className="rounded bg-black px-4 py-2 text-sm text-white"
@@ -63,10 +54,49 @@ export default async function SettingsPage() {
           </button>
         </form>
 
-        <StatusList
-          key={statuses.map((s) => `${s.id}:${s.is_completed}`).join(",")}
-          statuses={statuses}
-        />
+        <ul className="divide-y divide-black/5 rounded border border-black/10">
+          {statuses?.length ? (
+            statuses.map((status) => (
+              <li
+                key={status.id}
+                className="flex items-center justify-between gap-3 px-3 py-2 text-sm"
+              >
+                <span>{status.name}</span>
+                <div className="flex items-center gap-3">
+                  <form action={toggleStatusCompleted}>
+                    <input type="hidden" name="id" value={status.id} />
+                    <input
+                      type="hidden"
+                      name="is_completed"
+                      value={String(status.is_completed)}
+                    />
+                    <button
+                      type="submit"
+                      className={`rounded-full px-2 py-0.5 text-xs ${
+                        status.is_completed
+                          ? "bg-black text-white"
+                          : "border border-black/20 text-black/50"
+                      }`}
+                    >
+                      נחשב כהושלם
+                    </button>
+                  </form>
+                  <form action={deleteStatus}>
+                    <input type="hidden" name="id" value={status.id} />
+                    <button
+                      type="submit"
+                      className="text-xs text-black/60 underline"
+                    >
+                      מחיקה
+                    </button>
+                  </form>
+                </div>
+              </li>
+            ))
+          ) : (
+            <li className="px-3 py-3 text-sm text-black/40">אין ערכים עדיין.</li>
+          )}
+        </ul>
       </section>
 
       <SettingsList
