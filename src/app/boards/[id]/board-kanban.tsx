@@ -9,6 +9,7 @@ import {
   type Priority,
   type FieldDef,
   type AssignableUser,
+  type Project,
   type Task,
 } from "./task-modals";
 
@@ -28,7 +29,10 @@ export function BoardKanban({
   tasks,
   assigneeIdsByTask,
   assignableUsers,
+  projects,
+  projectIdsByTask,
   canManage,
+  canLinkProjects,
 }: {
   boardId: string;
   statuses: Status[];
@@ -37,7 +41,10 @@ export function BoardKanban({
   tasks: Task[];
   assigneeIdsByTask: Record<string, string[]>;
   assignableUsers: AssignableUser[];
+  projects: Project[];
+  projectIdsByTask: Record<string, string[]>;
   canManage: boolean;
+  canLinkProjects: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
@@ -171,6 +178,9 @@ export function BoardKanban({
           assignableUsers={assignableUsers}
           assigneeIds={assigneeIdsByTask[selectedTask.id] ?? []}
           assigneeNames={namesForTask(selectedTask.id)}
+          projects={projects}
+          projectIds={projectIdsByTask[selectedTask.id] ?? []}
+          canLinkProjects={canLinkProjects}
           isPending={isPending}
           canEdit={canManage}
           onClose={() => setSelectedTaskId(null)}

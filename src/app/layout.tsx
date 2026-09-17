@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { SiteFooter } from "@/components/site-footer";
 
 // Deliberately not using next/font/google (Geist etc.): those fonts have
 // limited/no Hebrew glyph coverage anyway, and self-hosting a Hebrew
@@ -19,7 +20,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="he" dir="rtl" className="h-full antialiased">
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <div className="flex flex-1 flex-col">{children}</div>
+        <SiteFooter />
+      </body>
     </html>
   );
 }

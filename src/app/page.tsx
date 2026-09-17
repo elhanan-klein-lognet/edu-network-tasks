@@ -1,6 +1,4 @@
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { SignOutButton } from "@/components/sign-out-button";
 
 const ROLE_LABELS: Record<string, string> = {
   super_admin: "מנהל-על",
@@ -18,7 +16,7 @@ export default async function HomePage() {
   const { data: profile } = user
     ? await supabase
         .from("users")
-        .select("full_name, role, institution_id")
+        .select("full_name, role")
         .eq("id", user.id)
         .single()
     : { data: null };
@@ -33,33 +31,6 @@ export default async function HomePage() {
           תפקיד: {ROLE_LABELS[profile.role] ?? profile.role}
         </p>
       )}
-      <div className="flex gap-3">
-        {profile && (
-          <Link
-            href="/boards"
-            className="rounded bg-black px-4 py-2 text-sm text-white"
-          >
-            ה-Boards שלי
-          </Link>
-        )}
-        {profile?.role && ["super_admin", "network_admin"].includes(profile.role) && (
-          <Link
-            href="/dashboard"
-            className="rounded border border-black/20 px-4 py-2 text-sm"
-          >
-            דשבורד ניהולי
-          </Link>
-        )}
-        {profile?.role === "super_admin" && (
-          <Link
-            href="/admin/institutions"
-            className="rounded border border-black/20 px-4 py-2 text-sm"
-          >
-            כניסה לממשק הניהול
-          </Link>
-        )}
-      </div>
-      <SignOutButton />
     </main>
   );
 }

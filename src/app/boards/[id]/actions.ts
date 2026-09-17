@@ -132,7 +132,31 @@ export async function updateTask(formData: FormData) {
     if (insertError) throw new Error(insertError.message);
   }
 
+  // Project links (section 6) only render in the edit form for
+  // super_admin/network_admin (task_project_links_write is restricted to
+  // those roles at the RLS level too) — the hidden marker distinguishes
+  // "the field wasn't shown, leave links alone" from "shown and cleared to
+  // none", so an institution_manager editing a task never wipes its
+  // project links just by not seeing that field.
+  if (formData.get("has_project_field") === "1") {
+    const projectIds = formData.getAll("project_ids").map(String);
+
+    const { error: deleteProjectsError } = await supabase
+      .from("task_project_links")
+      .delete()
+      .eq("task_id", taskId);
+    if (deleteProjectsError) throw new Error(deleteProjectsError.message);
+
+    if (projectIds.length) {
+      const { error: insertProjectsError } = await supabase
+        .from("task_project_links")
+        .insert(projectIds.map((projectId) => ({ task_id: taskId, project_id: projectId })));
+      if (insertProjectsError) throw new Error(insertProjectsError.message);
+    }
+  }
+
   revalidatePath(`/boards/${boardId}`);
+  revalidatePath("/dashboard");
 }
 
 export async function updateTaskStatus(formData: FormData) {
@@ -148,4 +172,5 @@ export async function updateTaskStatus(formData: FormData) {
   if (error) throw new Error(error.message);
 
   revalidatePath(`/boards/${boardId}`);
+  revalidatePath("/dashboard");
 }

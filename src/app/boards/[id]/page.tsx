@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { BoardKanban } from "./board-kanban";
 
 const CAN_CREATE_TASKS = ["super_admin", "network_admin", "institution_manager"];
+const CAN_LINK_PROJECTS = ["super_admin", "network_admin"];
 
 export default async function BoardTasksPage(
   props: PageProps<"/boards/[id]">,
@@ -73,6 +74,28 @@ export default async function BoardTasksPage(
   }
 
   const canManage = profile ? CAN_CREATE_TASKS.includes(profile.role) : false;
+  const canLinkProjects = profile ? CAN_LINK_PROJECTS.includes(profile.role) : false;
+
+  // Fetched for everyone (not just canLinkProjects) so the read-only detail
+  // view can show a linked project's name too, not just admins editing it —
+  // RLS already limits what comes back to what that viewer can see anyway.
+  const { data: projects } = await supabase
+    .from("projects")
+    .select("id, name")
+    .order("name");
+  const { data: projectLinks } = taskIds.length
+    ? await supabase
+        .from("task_project_links")
+        .select("task_id, project_id")
+        .in("task_id", taskIds)
+    : { data: [] };
+
+  const projectIdsByTask: Record<string, string[]> = {};
+  for (const l of projectLinks ?? []) {
+    const list = projectIdsByTask[l.task_id] ?? [];
+    list.push(l.project_id);
+    projectIdsByTask[l.task_id] = list;
+  }
 
   return (
     <div className="w-full space-y-4 px-4 py-4">
@@ -91,7 +114,10 @@ export default async function BoardTasksPage(
         tasks={tasks ?? []}
         assigneeIdsByTask={assigneeIdsByTask}
         assignableUsers={assignableUsers ?? []}
+        projects={projects ?? []}
+        projectIdsByTask={projectIdsByTask}
         canManage={canManage}
+        canLinkProjects={canLinkProjects}
       />
     </div>
   );

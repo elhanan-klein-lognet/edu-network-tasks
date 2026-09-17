@@ -11,6 +11,7 @@ export type FieldDef = {
   field_options: unknown;
 };
 export type AssignableUser = { id: string; full_name: string };
+export type Project = { id: string; name: string };
 export type Task = {
   id: string;
   title: string;
@@ -266,6 +267,9 @@ export function TaskDetailModal({
   assignableUsers,
   assigneeIds,
   assigneeNames,
+  projects,
+  projectIds,
+  canLinkProjects,
   isPending,
   canEdit,
   onClose,
@@ -280,6 +284,9 @@ export function TaskDetailModal({
   assignableUsers: AssignableUser[];
   assigneeIds: string[];
   assigneeNames: string[];
+  projects: Project[];
+  projectIds: string[];
+  canLinkProjects: boolean;
   isPending: boolean;
   canEdit: boolean;
   onClose: () => void;
@@ -338,6 +345,14 @@ export function TaskDetailModal({
           <p className="text-sm text-black/60">
             אחראים: {assigneeNames.length ? assigneeNames.join(", ") : "ללא"}
           </p>
+          {projectIds.length > 0 && (
+            <p className="text-sm text-black/60">
+              פרויקטים:{" "}
+              {projectIds
+                .map((id) => projects.find((p) => p.id === id)?.name ?? "—")
+                .join(", ")}
+            </p>
+          )}
 
           {fieldDefs.length > 0 && (
             <div className="space-y-1 border-t border-black/10 pt-3 text-sm">
@@ -392,6 +407,29 @@ export function TaskDetailModal({
             assignee_ids: assigneeIds,
           }}
         />
+
+        {canLinkProjects && projects.length > 0 && (
+          <div className="space-y-1 border-t border-black/10 pt-3">
+            <input type="hidden" name="has_project_field" value="1" />
+            <label className="block text-xs text-black/50" htmlFor="project_ids">
+              פרויקטים (סעיף 6 — אפשר לבחור כמה, Ctrl/Cmd+קליק או גרירה):
+            </label>
+            <select
+              id="project_ids"
+              name="project_ids"
+              multiple
+              size={Math.min(5, Math.max(2, projects.length))}
+              defaultValue={projectIds}
+              className="w-full rounded border border-black/20 px-2 py-1 text-sm"
+            >
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <button
           type="submit"
